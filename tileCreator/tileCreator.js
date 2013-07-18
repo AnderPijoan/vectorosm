@@ -60,11 +60,11 @@ function dirExists(dir, temp, callback){
 ////////////////////////////////// GENERATE ONE TILE ONLY
 
 function generateTile(z, x, y){
-console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').yellow);
+//console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').yellow);
 
 	bc.getBbox(z, x, y, function (l, t, r, b){
 
-console.log(('[TILECREATOR.JS] Bounding Box for ' + z + '/' + x + '/' + y + ' tile : [' + l + ',' +  t + ',' + r + ',' + b + ']').yellow);
+//console.log(('[TILECREATOR.JS] Bounding Box for ' + z + '/' + x + '/' + y + ' tile : [' + l + ',' +  t + ',' + r + ',' + b + ']').yellow);
 
 	if (l || t || r || b){
 	  

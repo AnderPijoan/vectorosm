@@ -16,7 +16,7 @@ for (r = 0 ; r < result.rows.length ; r++){
 		feature.geometry = JSON.parse(result.rows[r].geometry);
 	}
 
-	if(false && result.rows[r].properties){
+	if(result.rows[r].properties){
 		var properties = {};
 		
 		var propertiesArray = result.rows[r].properties.split(',');
@@ -26,7 +26,7 @@ for (r = 0 ; r < result.rows.length ; r++){
 			var keyvalue = propertiesArray[p].split('=>');
 
 			if (keyvalue.length){
-				//properties.keyvalue[0] = keyvalue[1];
+				properties[JSON.parse(keyvalue[0])] = JSON.parse(keyvalue[1]);
 			}
 		
 		}
