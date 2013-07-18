@@ -8,7 +8,7 @@ featureCollection.type = 'FeatureCollection';
 
 
 for (r = 0 ; r < result.rows.length ; r++){
-
+  
 	var feature = {};
 	feature.type = 'Feature';
 

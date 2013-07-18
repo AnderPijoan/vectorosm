@@ -60,7 +60,7 @@ function dirExists(dir, temp, callback){
 ////////////////////////////////// GENERATE ONE TILE ONLY
 
 function generateTile(z, x, y){
-console.log(('[TILECREATOR.JS] Started generating ' + z + '/' + x + '/' + y + ' tile').yellow);
+console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').yellow);
 
 	bc.getBbox(z, x, y, function (l, t, r, b){
 
@@ -103,7 +103,7 @@ exports.generareTile = generateTile;
 ////////////////////////////////// GENERATE ONE ZOOM LEVEL ONLY
 
 function generateZoomTiles(z){
-console.log(('[TILECREATOR.JS] Started generating ' + z + ' zoom level tiles').yellow);
+console.log(('[TILECREATOR.JS] Asked for ' + z + ' zoom level tiles').yellow);
 
 dirExists('public/tiles/' + z, z, function(result, temp, dir){
 
@@ -130,12 +130,12 @@ exports.generateZoomTiles = generateZoomTiles;
 ////////////////////////////////// GENERATE ALL TILES
 
 function generateAllTiles() {
-console.log('[TILECREATOR.JS] Started generating ALL tiles'.yellow);
+console.log('[TILECREATOR.JS] Asked for ALL tiles'.yellow);
 
 dirExists('public/tiles', null, function(result, temp, dir){
 	
 	var zoom = 0,
-            maxZoom = 10;
+            maxZoom = 6;
 
 	if (!result){	
 		fs.mkdirSync(dir);
