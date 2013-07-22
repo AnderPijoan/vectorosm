@@ -55,22 +55,35 @@ function dirExists(dir, temp, callback){
 }
 
 ////////////////////////////////// CHECK IF FILE EXISTS
+// file : file to check wether it exists
+// temp : temporary variable for when calling back
 
+
+function fileExists(file, temp, callback){
+	fs.exists(file, function(exists){
+		if (exists) {
+			callback(true, temp, file);
+        	}
+		else {
+		callback(false, temp, file);
+		}
+	});
+}
 
 ////////////////////////////////// GENERATE ONE TILE ONLY
 
-function generateTile(z, x, y){
-//console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').yellow);
+function generateTile(z, x, y, callback){
+console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').yellow);
 
 	bc.getBbox(z, x, y, function (l, t, r, b){
 
-//console.log(('[TILECREATOR.JS] Bounding Box for ' + z + '/' + x + '/' + y + ' tile : [' + l + ',' +  t + ',' + r + ',' + b + ']').yellow);
+	console.log(('[TILECREATOR.JS] Bounding Box for ' + z + '/' + x + '/' + y + ' tile : [' + l + ',' +  t + ',' + r + ',' + b + ']').yellow);
 
 	if (l || t || r || b){
 	  
 		var query = qc.getQuery(z, l, t, r, b);
 
-		client.query(query , function(error, result) {
+		client.query(query, function(error, result) {
 
 			var fileName = 'public/tiles/' + z + '/' + x + '/' + y + '.json';
 
@@ -78,13 +91,21 @@ function generateTile(z, x, y){
 
 				rp.parseResult(result, function(parsedResult){
 					if (parsedResult) {
-						fs.writeFile(fileName, parsedResult, function(error) {
-							if(error) {
-								console.log(('[TILECREATOR.JS] Error generating ' + fileName + ' - ' + error).red);
-							} else {
-								console.log(('[TILECREATOR.JS] Succesfully generated ' + fileName).green);
+						fileExists(fileName, parsedResult, function(exists, stream, file){
+							if (exists){
+								fs.unlinkSync(file);
 							}
+							fs.writeFile(file, stream, function(error) {
+								if(error) {
+									console.log(('[TILECREATOR.JS] Error generating ' + file + ' - ' + error).red);
+									callback(error);
+								} else {
+									console.log(('[TILECREATOR.JS] Succesfully generated ' + file).green);
+									callback();
+								}
+							});
 						});
+						
 					}
 				});
 			} else {
@@ -97,17 +118,18 @@ function generateTile(z, x, y){
 	});
 
 }
-exports.generareTile = generateTile;
+exports.generateTile = generateTile;
 
 
 ////////////////////////////////// GENERATE ONE ZOOM LEVEL ONLY
 
-function generateZoomTiles(z){
+function generateZoomTiles(z, callback){
 console.log(('[TILECREATOR.JS] Asked for ' + z + ' zoom level tiles').yellow);
 
 dirExists('public/tiles/' + z, z, function(result, temp, dir){
 
 	var numTiles = Math.pow(2, z);
+	var totalTiles = numTiles * numTiles;
 
         if (!result){
         	fs.mkdirSync(dir);
@@ -119,7 +141,14 @@ dirExists('public/tiles/' + z, z, function(result, temp, dir){
                                	fs.mkdirSync(dir);
 			}
 			for (var y = 0 ; y < numTiles ; y++){
-				generateTile(z, temp, y);
+				generateTile(z, temp, y, function(error){
+
+					totalTiles--;
+					if(totalTiles == 0){
+						callback();
+					}
+
+				});
 	                }
         	});
 	}
@@ -129,22 +158,28 @@ exports.generateZoomTiles = generateZoomTiles;
 
 ////////////////////////////////// GENERATE ALL TILES
 
-function generateAllTiles() {
-console.log('[TILECREATOR.JS] Asked for ALL tiles'.yellow);
+function generateFromToTiles(from, to, callback) {
+console.log(('[TILECREATOR.JS] Asked for tiles between ' + from + ' and ' + to).yellow);
 
 dirExists('public/tiles', null, function(result, temp, dir){
-	
-	var zoom = 0,
-            maxZoom = 6;
 
-	if (!result){	
+	var numZooms = to - from +1;
+  
+	if (!result){
 		fs.mkdirSync(dir);
 	}
-        for (var z = zoom ; z <= maxZoom ; z++){
-               	generateZoomTiles(z);
-       	}	
+        for (var z = from ; z <= to ; z++){
+               	generateZoomTiles(z, function(error){
+
+		numZooms--;
+		if (numZooms == 0){
+			callback();
+		}
+
+		});
+       	}
 });
 
 }
-exports.generateAllTiles = generateAllTiles;
+exports.generateFromToTiles = generateFromToTiles;
 
