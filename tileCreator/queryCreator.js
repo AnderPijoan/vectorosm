@@ -81,8 +81,15 @@ case 17 : return "SELECT ST_ASGEOJSON(ST_INTERSECTION( ST_TRANSFORM(ST_SETSRID(w
 
 // ZOOM 18
 
-case 18 : return "SELECT ST_ASGEOJSON(ST_INTERSECTION( ST_TRANSFORM(ST_SETSRID(way, 900913),4326) , ST_SETSRID(ST_MAKEENVELOPE(" + left + "," + top + "," + right + "," + bottom + "), 4326) ) ) AS geometry, tags AS properties FROM planet_osm_roads WHERE ST_INTERSECTS( ST_TRANSFORM(ST_SETSRID(way, 900913),4326), ST_SETSRID(ST_MAKEENVELOPE(" + left + "," + top + "," + right + "," + bottom + "), 4326) ) AND highway <> ''";
+case 18 : return "SELECT ST_ASGEOJSON(ST_INTERSECTION( ST_TRANSFORM(ST_SETSRID(way, 900913),4326) , ST_SETSRID(ST_MAKEENVELOPE(" + left + "," + top + "," + right + "," + bottom + "), 4326) ) ) AS geometry, tags AS properties FROM planet_osm_polygon WHERE ST_INTERSECTS( ST_TRANSFORM(ST_SETSRID(way, 900913),4326), ST_SETSRID(ST_MAKEENVELOPE(" + left + "," + top + "," + right + "," + bottom + "), 4326) )" +
+  " UNION " +
+  "SELECT ST_ASGEOJSON(ST_INTERSECTION( ST_TRANSFORM(ST_SETSRID(way, 900913),4326) , ST_SETSRID(ST_MAKEENVELOPE(" + left + "," + top + "," + right + "," + bottom + "), 4326) ) ) AS geometry, tags AS properties FROM planet_osm_point WHERE ST_INTERSECTS( ST_TRANSFORM(ST_SETSRID(way, 900913),4326), ST_SETSRID(ST_MAKEENVELOPE(" + left + "," + top + "," + right + "," + bottom + "), 4326) )" +
+  " UNION " +
+  "SELECT ST_ASGEOJSON(ST_INTERSECTION( ST_TRANSFORM(ST_SETSRID(way, 900913),4326) , ST_SETSRID(ST_MAKEENVELOPE(" + left + "," + top + "," + right + "," + bottom + "), 4326) ) ) AS geometry, tags AS properties FROM planet_osm_line WHERE ST_INTERSECTS( ST_TRANSFORM(ST_SETSRID(way, 900913),4326), ST_SETSRID(ST_MAKEENVELOPE(" + left + "," + top + "," + right + "," + bottom + "), 4326) )";
 
+default : console.log(('[QUERYCREATOR.JS] No query found for ' + zoom + ' zoom level').red);
+	  return "";
+  
 }
 
 }

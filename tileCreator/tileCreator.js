@@ -5,12 +5,13 @@ var fs = require('fs'),
     qc = require('./queryCreator'),
     rp = require('./resultParser'),
     bc = require('./bboxCreator'),
+    ut = require('../utils/utils'),
     conString = 'tcp://gisuser:gisuser@energia.deusto.es:5432/gis',
     client = new pg.Client(conString);
     
 ////////////////////////////////// CONNECT TO DB
     
-function connect(callback){
+exports.connect = function connect(callback){
   
     client.connect( function(error) {
 	if (error){
@@ -21,66 +22,26 @@ function connect(callback){
 	} 
     });
 }
-exports.connect = connect;
 
 ////////////////////////////////// END DB CONNECTION
     
-function disconnect(callback){
+exports.disconnect = function disconnect(callback){
     client.end();
     callback();
 }
-exports.disconnect = disconnect;
 
-////////////////////////////////// CHECK IF DIRECTORY EXISTS
-// dir : path to be created
-// temp : temporary variable for when calling back
-
-
-function dirExists(dir, temp, callback){
-	fs.exists(dir, function(exists){
-		if (exists) {
-        	fs.stat(dir, function(err, stats){
-                	if (stats.isDirectory()){
-			callback(true, temp, dir);
-               		}
-			else {
-			callback(false, temp, dir);
-			}
-        	});
-        	}
-		else {
-		callback(false, temp, dir);
-		}
-	});
-}
-
-////////////////////////////////// CHECK IF FILE EXISTS
-// file : file to check wether it exists
-// temp : temporary variable for when calling back
-
-
-function fileExists(file, temp, callback){
-	fs.exists(file, function(exists){
-		if (exists) {
-			callback(true, temp, file);
-        	}
-		else {
-		callback(false, temp, file);
-		}
-	});
-}
 
 ////////////////////////////////// GENERATE ONE TILE ONLY
 
-function generateTile(z, x, y, callback){
-console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').yellow);
+exports.generateTile = function generateTile(z, x, y, callback){
+//console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').yellow);
 
 	bc.getBbox(z, x, y, function (l, t, r, b){
 
-	console.log(('[TILECREATOR.JS] Bounding Box for ' + z + '/' + x + '/' + y + ' tile : [' + l + ',' +  t + ',' + r + ',' + b + ']').yellow);
+	//console.log(('[TILECREATOR.JS] Bounding Box for ' + z + '/' + x + '/' + y + ' tile : [' + l + ',' +  t + ',' + r + ',' + b + ']').yellow);
 
 	if (l || t || r || b){
-	  
+
 		var query = qc.getQuery(z, l, t, r, b);
 
 		client.query(query, function(error, result) {
@@ -91,7 +52,7 @@ console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').ye
 
 				rp.parseResult(result, function(parsedResult){
 					if (parsedResult) {
-						fileExists(fileName, parsedResult, function(exists, stream, file){
+						ut.fileExists(fileName, parsedResult, function(exists, stream, file){
 							if (exists){
 								fs.unlinkSync(file);
 							}
@@ -100,7 +61,7 @@ console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').ye
 									console.log(('[TILECREATOR.JS] Error generating ' + file + ' - ' + error).red);
 									callback(error);
 								} else {
-									console.log(('[TILECREATOR.JS] Succesfully generated ' + file).green);
+									//console.log(('[TILECREATOR.JS] Succesfully generated ' + file).green);
 									callback();
 								}
 							});
@@ -118,15 +79,14 @@ console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').ye
 	});
 
 }
-exports.generateTile = generateTile;
 
 
 ////////////////////////////////// GENERATE ONE ZOOM LEVEL ONLY
 
-function generateZoomTiles(z, callback){
+exports.generateZoomTiles = function generateZoomTiles(z, callback){
 console.log(('[TILECREATOR.JS] Asked for ' + z + ' zoom level tiles').yellow);
 
-dirExists('public/tiles/' + z, z, function(result, temp, dir){
+ut.dirExists('public/tiles/' + z, z, function(result, temp, dir){
 
 	var numTiles = Math.pow(2, z);
 	var totalTiles = numTiles * numTiles;
@@ -136,7 +96,7 @@ dirExists('public/tiles/' + z, z, function(result, temp, dir){
 	}
 
 	for (var x = 0 ; x < numTiles ; x++){
-                dirExists('public/tiles/' + z + '/' + x, x, function(result, temp, dir){
+                ut.dirExists('public/tiles/' + z + '/' + x, x, function(result, temp, dir){
                        	if (!result){
                                	fs.mkdirSync(dir);
 			}
@@ -145,6 +105,7 @@ dirExists('public/tiles/' + z, z, function(result, temp, dir){
 
 					totalTiles--;
 					if(totalTiles == 0){
+						console.log(('[TILECREATOR.JS] Succesfully generated ' + z + ' zoom level tiles').green);
 						callback();
 					}
 
@@ -154,14 +115,13 @@ dirExists('public/tiles/' + z, z, function(result, temp, dir){
 	}
 });
 }
-exports.generateZoomTiles = generateZoomTiles;
 
 ////////////////////////////////// GENERATE ALL TILES
 
-function generateFromToTiles(from, to, callback) {
+exports.generateFromToTiles = function generateFromToTiles(from, to, callback) {
 console.log(('[TILECREATOR.JS] Asked for tiles between ' + from + ' and ' + to).yellow);
 
-dirExists('public/tiles', null, function(result, temp, dir){
+ut.dirExists('public/tiles', null, function(result, temp, dir){
 
 	var numZooms = to - from +1;
   
@@ -181,5 +141,3 @@ dirExists('public/tiles', null, function(result, temp, dir){
 });
 
 }
-exports.generateFromToTiles = generateFromToTiles;
-
