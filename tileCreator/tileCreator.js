@@ -6,27 +6,30 @@ var fs = require('fs'),
     rp = require('./resultParser'),
     bc = require('./bboxCreator'),
     ut = require('../utils/utils'),
-    conString = 'tcp://gisuser:gisuser@energia.deusto.es:5432/gis',
-    client = new pg.Client(conString);
+    conString = 'tcp://gisuser:gisuser@energia.deusto.es:5432/gis';
     
 ////////////////////////////////// CONNECT TO DB
     
 exports.connect = function connect(callback){
-  
-    client.connect( function(error) {
-	if (error){
-		callback(error);
-	}
-	else {
-		callback();
-	} 
-    });
+   
+	// TODO Maybe with pg.connect might be better to fetch clients from pool
+	// https://github.com/brianc/node-postgres#client-pooling
+
+	var client = new pg.Client(conString);
+	client.connect( function(error) {
+		if (error){
+			callback(error);
+		}
+		else {
+			callback(0, client);
+		} 
+	});
 }
 
 
 ////////////////////////////////// END DB CONNECTION
     
-exports.disconnect = function disconnect(callback){
+exports.disconnect = function disconnect(client, callback){
     client.end();
     callback();
 }
@@ -34,7 +37,7 @@ exports.disconnect = function disconnect(callback){
 
 ////////////////////////////////// GENERATE ONE TILE ONLY
 
-function generateTile(z, x, y, callback){
+function generateTile(client, z, x, y, callback){
 //console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').yellow);
 
 	bc.getLTRBbox(z, x, y, function (l, t, r, b){
@@ -84,7 +87,7 @@ exports.generateTile = generateTile;
 
 ////////////////////////////////// GENERATE SPECIFIED TILES FROM ONE ZOOM LEVEL
 
-function generateZoomTilesFromTo(z, minX, minY, maxX, maxY, callback){
+function generateZoomTilesFromTo(client, z, minX, minY, maxX, maxY, callback){
 console.log(('[TILECREATOR.JS] Asked for ' + z + ' zoom level tiles').yellow);
 
 ut.dirExists('public/tiles/' + z, z, function(result, temp, dir){
@@ -101,7 +104,7 @@ ut.dirExists('public/tiles/' + z, z, function(result, temp, dir){
                                	fs.mkdirSync(dir);
 			}
 			for (var y = minY ; y <= maxY ; y++){
-				generateTile(z, temp, y, function(error){
+				generateTile(client, z, temp, y, function(error){
 
 					totalTiles--;
 					if(totalTiles <= 0){
@@ -120,12 +123,12 @@ exports.generateZoomTilesFromTo = generateZoomTilesFromTo;
 
 ////////////////////////////////// GENERATE TILES OF THE BBOX FROM ONE ZOOM LEVEL
 
-function generateZoomTilesForBox(z, left, top, right, bottom, callback){
+function generateZoomTilesForBox(client, z, left, top, right, bottom, callback){
 
 	bc.getXYbox(z, left, top, right, bottom, function (z, minX, minY, maxX, maxY){
 	  
 		if (minX || minY || maxX || maxY){
-			generateZoomTilesFromTo(z, minX, minY, maxX, maxY, function(){
+			generateZoomTilesFromTo(client, z, minX, minY, maxX, maxY, function(){
 				callback();
 			});
 		} else {
@@ -138,7 +141,7 @@ exports.generateZoomTilesForBox = generateZoomTilesForBox;
 
 ////////////////////////////////// GENERATE ALL TILES FOR THE SPECIFIED ZOOM LEVELS
 
-function generateZoomsFromTo(from, to, callback) {
+function generateZoomsFromTo(client, from, to, callback) {
 console.log(('[TILECREATOR.JS] Asked for tiles between ' + from + ' and ' + to).yellow);
 
 ut.dirExists('public/tiles', null, function(result, temp, dir){
@@ -151,13 +154,12 @@ ut.dirExists('public/tiles', null, function(result, temp, dir){
         for (var z = from ; z <= to ; z++){
 
 		var numTiles = Math.pow(2, z);
-               	generateZoomTilesFromTo(z, 0, 0, numTiles, numTiles,  function(error){
+               	generateZoomTilesFromTo(client, z, 0, 0, numTiles, numTiles,  function(error){
 
-		numZooms--;
-		if (numZooms <= 0){
-			callback();
-		}
-
+			numZooms--;
+			if (numZooms <= 0){
+				callback();
+			}
 		});
        	}
 });

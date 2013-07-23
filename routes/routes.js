@@ -12,7 +12,7 @@ var fs = require('fs'),
 ////////////////////////////////// GENERATE A CERTAIN TILE
 
 app.get('/generate/:zoom/:x/:y', function(req, res){
-    tc.connect(function(error){
+    tc.connect(function(error, client){
 
 	var zoom = parseInt(req.params.zoom);
 
@@ -29,26 +29,27 @@ app.get('/generate/:zoom/:x/:y', function(req, res){
 					if (!result){
 						fs.mkdirSync(dir);
 					}
-					
-					tc.generateTile(zoom, parseInt(req.params.x), parseInt(req.params.y), function(){
-						tc.disconnect(function(){
+					res.send(zoom + '/' + req.params.x + '/' + req.params.y + ' tile generation process started');
+					tc.generateTile(client, zoom, parseInt(req.params.x), parseInt(req.params.y), function(){
+						tc.disconnect(client, function(){
 						console.log('[ROUTES.JS] Finished generating tiles'.rainbow);
-						res.send(zoom + '/' + req.params.x + '/' + req.params.y + ' tile generation process finished');
+						});
 					});
-			});
 				
 				});
 			});
 		}
 		else {
-			console.log(('[ROUTES.JS] Zoom level ' + req.params.zoom + 'exceeds max zoom level ' + maxZoom).red);
 			res.send('Zoom level ' + zoom + ' exceeds max zoom level ' + maxZoom);
+			tc.disconnect(client, function(){
+				console.log(('[ROUTES.JS] Zoom level ' + req.params.zoom + 'exceeds max zoom level ' + maxZoom).red);
+			});
 		}
 	}
 	else {
-		tc.disconnect(function(){
+	  	res.send('Error trying to connect to DB : ' + error);
+		tc.disconnect(client, function(){
 			console.log(('[ROUTES.JS] Error trying to connect to DB : ' + error).red);
-			res.send('Error trying to connect to DB : ' + error);
 		});
 	}
       
@@ -59,29 +60,31 @@ app.get('/generate/:zoom/:x/:y', function(req, res){
 ////////////////////////////////// GENERATE FROM X TO Y ZOOM
 
 app.get('/generate/zoom/from/:from/to/:to', function(req, res){
-    tc.connect(function(error){
+    tc.connect(function(error, client){
       
 	var from = parseInt(req.params.from);
 	var to = parseInt(req.params.to);
 	
 	if (!error){
 		if (to <= maxZoom){
-			tc.generateZoomsFromTo(from, to, function(){
-				tc.disconnect(function(){
+		  	res.send('Zoom levels from ' + from + ' to ' + to + ' generation process started');
+			tc.generateZoomsFromTo(client, from, to, function(){
+				tc.disconnect(client, function(){
 					console.log('[ROUTES.JS] Finished generating tiles'.rainbow);
-					res.send('Zoom levels from ' + from + ' to ' + to + ' generation process finished');
 				});
 			});
 		}
 		else {
-			console.log(('[ROUTES.JS] Zoom level ' + zoom + ' exceeds max zoom level ' + maxZoom).red);
-			res.send('Zoom level ' + to + ' exceeds max zoom level ' + maxZoom);
+		  	res.send('Zoom level ' + to + ' exceeds max zoom level ' + maxZoom);
+			tc.disconnect(client, function(){
+				console.log(('[ROUTES.JS] Zoom level ' + zoom + ' exceeds max zoom level ' + maxZoom).red);
+			});
 		}
 	}
 	else {
-		tc.disconnect(function(){
+	  	res.send('Error trying to connect to DB : ' + error);
+		tc.disconnect(client, function(){
 			console.log(('[ROUTES.JS] Error trying to connect to DB : ' + error).red);
-			res.send('Error trying to connect to DB : ' + error);
 		});
 	}
       
@@ -92,28 +95,30 @@ app.get('/generate/zoom/from/:from/to/:to', function(req, res){
 ////////////////////////////////// GENERATE ALL TILES FROM CERTAIN ZOOM LEVEL
 
 app.get('/generate/zoom/:zoom', function(req, res){
-    tc.connect(function(error){
+    tc.connect(function(error, client){
       
 	var zoom = parseInt(req.params.zoom);
 	
 	if (!error){
 		if (zoom <= maxZoom){
+		  	res.send('Zoom level ' + zoom + ' generation process started');
 			tc.generateZoomsFromTo(zoom, zoom, function(){
-				tc.disconnect(function(){
+				tc.disconnect(client, function(){
 					console.log('[ROUTES.JS] Finished generating tiles'.rainbow);
-					res.send('Zoom level ' + zoom + ' generation process finished');
 				});
 			});
 		}
 		else {
-			console.log(('[ROUTES.JS] Zoom level ' + zoom + ' exceeds max zoom level ' + maxZoom).red);
-			res.send('Zoom level ' + zoom + ' exceeds max zoom level ' + maxZoom);
+		  	res.send('Zoom level ' + zoom + ' exceeds max zoom level ' + maxZoom);
+			tc.disconnect(client, function(){
+				console.log(('[ROUTES.JS] Zoom level ' + zoom + ' exceeds max zoom level ' + maxZoom).red);
+			});
 		}
 	}
 	else {
-		tc.disconnect(function(){
+	  	res.send('Error trying to connect to DB : ' + error);
+		tc.disconnect(client, function(){
 			console.log(('[ROUTES.JS] Error trying to connect to DB : ' + error).red);
-			res.send('Error trying to connect to DB : ' + error);
 		});
 	}
       
@@ -124,7 +129,7 @@ app.get('/generate/zoom/:zoom', function(req, res){
 ////////////////////////////////// GENERATE ALL TILES IN A ZOOM FOR A BOUNDING BOX
 
 app.get('/generate/bbox/:zoom/:left/:top/:right/:bottom', function(req, res){
-    tc.connect(function(error){
+    tc.connect(function(error, client){
       
 	var zoom = parseInt(req.params.zoom);
 	var left = parseFloat(req.params.left);
@@ -134,21 +139,23 @@ app.get('/generate/bbox/:zoom/:left/:top/:right/:bottom', function(req, res){
 	
 	if (!error){
 		if (zoom <= maxZoom){
-			tc.generateZoomTilesForBox(zoom, left, top, right, bottom, function(){
-				tc.disconnect(function(){
+			res.send('Zoom level ' + zoom + ' generation for bbox [' + left + ',' + top + ',' + right + ',' + bottom + '] process started');
+			tc.generateZoomTilesForBox(client, zoom, left, top, right, bottom, function(){
+				tc.disconnect(client, function(){
 					console.log('[ROUTES.JS] Finished generating tiles'.rainbow);
-					res.send('Zoom level ' + zoom + ' generation process finished for bbox [' + left + ',' + top + ',' + right + ',' + bottom + ']');
 				});
 			});
 		}
 		else {
-			console.log(('[ROUTES.JS] Zoom level ' + zoom + ' exceeds max zoom level ' + maxZoom).red);
-			res.send('Zoom level ' + zoom + ' exceeds max zoom level ' + maxZoom);
+		  	res.send('Zoom level ' + zoom + ' exceeds max zoom level ' + maxZoom);
+			tc.disconnect(client, function(){
+				console.log(('[ROUTES.JS] Zoom level ' + zoom + ' exceeds max zoom level ' + maxZoom).red);
+			});
 		}
 	}
 	else {
-		res.send(error);
-		tc.disconnect(function(){
+		res.send('Error trying to connect to DB : ' + error);
+		tc.disconnect(client, function(){
 			console.log(('[ROUTES.JS] Error trying to connect to DB - ' + error).red);
 			callback(error);
 		});
@@ -161,20 +168,20 @@ app.get('/generate/bbox/:zoom/:left/:top/:right/:bottom', function(req, res){
 ////////////////////////////////// GENERATE ALL TILES
 
 app.get('/generate', function(req, res){
-    tc.connect(function(error){
+    tc.connect(function(error, client){
     
 	if (!error){
-		tc.generateZoomsFromTo(minZoom, maxZoom, function(){
-			tc.disconnect(function(){
+	  	res.send('All tile generation process started');
+		tc.generateZoomsFromTo(client, minZoom, maxZoom, function(){
+			tc.disconnect(client, function(){
 				console.log('[ROUTES.JS] Finished generating tiles'.rainbow);
-				res.send('All tile generation process finished');
 			});
 		});
 	}
 	else {
-		tc.disconnect(function(){
+	  	res.send('Error trying to connect to DB : ' + error);
+		tc.disconnect(client, function(){
 			console.log(('[ROUTES.JS] Error trying to connect to DB : ' + error).red);
-			res.send('Error trying to connect to DB : ' + error);
 		});
 	}
       
