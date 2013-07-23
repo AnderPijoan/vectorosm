@@ -25,8 +25,12 @@ for (r = 0 ; r < result.rows.length ; r++){
 		
 			var keyvalue = propertiesArray[p].split('=>');
 
-			if (keyvalue.length){
-				properties[JSON.parse(keyvalue[0])] = JSON.parse(keyvalue[1]);
+			if (keyvalue[0] && keyvalue[1]){
+				try {
+					properties[JSON.parse(keyvalue[0])] = JSON.parse(keyvalue[1]);
+				} catch (error){
+					console.log(('[RESULTPARSER.JS] Error parsing properties [ ' + keyvalue[0] + ' : ' + keyvalue[1] + ' ] - ' + error).red);
+				}
 			}
 		
 		}

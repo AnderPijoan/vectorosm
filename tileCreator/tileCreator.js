@@ -23,6 +23,7 @@ exports.connect = function connect(callback){
     });
 }
 
+
 ////////////////////////////////// END DB CONNECTION
     
 exports.disconnect = function disconnect(callback){
@@ -33,10 +34,10 @@ exports.disconnect = function disconnect(callback){
 
 ////////////////////////////////// GENERATE ONE TILE ONLY
 
-exports.generateTile = function generateTile(z, x, y, callback){
+function generateTile(z, x, y, callback){
 //console.log(('[TILECREATOR.JS] Asked for ' + z + '/' + x + '/' + y + ' tile').yellow);
 
-	bc.getBbox(z, x, y, function (l, t, r, b){
+	bc.getLTRBbox(z, x, y, function (l, t, r, b){
 
 	//console.log(('[TILECREATOR.JS] Bounding Box for ' + z + '/' + x + '/' + y + ' tile : [' + l + ',' +  t + ',' + r + ',' + b + ']').yellow);
 
@@ -61,7 +62,7 @@ exports.generateTile = function generateTile(z, x, y, callback){
 									console.log(('[TILECREATOR.JS] Error generating ' + file + ' - ' + error).red);
 									callback(error);
 								} else {
-									//console.log(('[TILECREATOR.JS] Succesfully generated ' + file).green);
+									console.log(('[TILECREATOR.JS] Succesfully generated ' + file).green);
 									callback();
 								}
 							});
@@ -77,34 +78,33 @@ exports.generateTile = function generateTile(z, x, y, callback){
 		console.log(('[TILECREATOR.JS] Error calculating bbox for ' +  z + '/' + x + '/' + y + ' tile ').red);
 	}
 	});
-
 }
+exports.generateTile = generateTile;
 
 
-////////////////////////////////// GENERATE ONE ZOOM LEVEL ONLY
+////////////////////////////////// GENERATE SPECIFIED TILES FROM ONE ZOOM LEVEL
 
-exports.generateZoomTiles = function generateZoomTiles(z, callback){
+function generateZoomTilesFromTo(z, minX, minY, maxX, maxY, callback){
 console.log(('[TILECREATOR.JS] Asked for ' + z + ' zoom level tiles').yellow);
 
 ut.dirExists('public/tiles/' + z, z, function(result, temp, dir){
 
-	var numTiles = Math.pow(2, z);
-	var totalTiles = numTiles * numTiles;
+	var totalTiles = (maxX - minX + 1) * (maxY - minY + 1);
 
         if (!result){
         	fs.mkdirSync(dir);
 	}
 
-	for (var x = 0 ; x < numTiles ; x++){
+	for (var x = minX ; x <= maxX ; x++){
                 ut.dirExists('public/tiles/' + z + '/' + x, x, function(result, temp, dir){
                        	if (!result){
                                	fs.mkdirSync(dir);
 			}
-			for (var y = 0 ; y < numTiles ; y++){
+			for (var y = minY ; y <= maxY ; y++){
 				generateTile(z, temp, y, function(error){
 
 					totalTiles--;
-					if(totalTiles == 0){
+					if(totalTiles <= 0){
 						console.log(('[TILECREATOR.JS] Succesfully generated ' + z + ' zoom level tiles').green);
 						callback();
 					}
@@ -115,10 +115,30 @@ ut.dirExists('public/tiles/' + z, z, function(result, temp, dir){
 	}
 });
 }
+exports.generateZoomTilesFromTo = generateZoomTilesFromTo;
 
-////////////////////////////////// GENERATE ALL TILES
 
-exports.generateFromToTiles = function generateFromToTiles(from, to, callback) {
+////////////////////////////////// GENERATE TILES OF THE BBOX FROM ONE ZOOM LEVEL
+
+function generateZoomTilesForBox(z, left, top, right, bottom, callback){
+
+	bc.getXYbox(z, left, top, right, bottom, function (z, minX, minY, maxX, maxY){
+	  
+		if (minX || minY || maxX || maxY){
+			generateZoomTilesFromTo(z, minX, minY, maxX, maxY, function(){
+				callback();
+			});
+		} else {
+			callback();
+		}
+	});
+}
+exports.generateZoomTilesForBox = generateZoomTilesForBox;
+
+
+////////////////////////////////// GENERATE ALL TILES FOR THE SPECIFIED ZOOM LEVELS
+
+function generateZoomsFromTo(from, to, callback) {
 console.log(('[TILECREATOR.JS] Asked for tiles between ' + from + ' and ' + to).yellow);
 
 ut.dirExists('public/tiles', null, function(result, temp, dir){
@@ -129,10 +149,12 @@ ut.dirExists('public/tiles', null, function(result, temp, dir){
 		fs.mkdirSync(dir);
 	}
         for (var z = from ; z <= to ; z++){
-               	generateZoomTiles(z, function(error){
+
+		var numTiles = Math.pow(2, z);
+               	generateZoomTilesFromTo(z, 0, 0, numTiles, numTiles,  function(error){
 
 		numZooms--;
-		if (numZooms == 0){
+		if (numZooms <= 0){
 			callback();
 		}
 
@@ -141,3 +163,4 @@ ut.dirExists('public/tiles', null, function(result, temp, dir){
 });
 
 }
+exports.generateZoomsFromTo = generateZoomsFromTo;

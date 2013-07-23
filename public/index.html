@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>D3 GeoJSON in Leaflet</title>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.css" />
+<script src="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="js/TileLayer.d3_geoJSON.js"></script>
+<style>
+html, body, #map { height: 100%;width:100%;}
+body { padding: 0; margin: 0; }
+.style { stroke : black; fill : none; }
+</style>
+<body>
+<div id="map"></div>
+<script>
+map = L.map(map).setView([38.9836, -3.927], 13);
+map._initPathRoot();
+
+/*http://energia.deusto.es/tilecache/tilecache.cgi/tilecache/osm/${z}/${x}/${y}.png*/
+/*http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png*/
+
+new L.TileLayer.d3_geoJSON('http://energia.deusto.es:8001/tiles/{z}/{x}/{y}.json',{class:"style"})
+  .addTo(map);
+
+new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {minZoom: 0, maxZoom: 18, attribution: 'Map data © OpenStreetMap contributors'}).addTo(map);		
+
+</script>
+</body>
