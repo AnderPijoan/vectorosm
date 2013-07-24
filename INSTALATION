@@ -97,7 +97,7 @@ sudo npm install colors
 
 (In tileCreator.js type the connection string "anything://user:password@host:port/database")
 
-conString = 'tcp://gisuser:gispassword@localhost:5432/gis';
+conString = 'tcp://osmuser:osmpassword@localhost:5432/osm';
 
 
 - MODIFY IF NEEDED THE QUERIES FOR EACH ZOOM LEVEL:
