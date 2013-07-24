@@ -110,4 +110,3 @@ conString = 'tcp://gisuser:gispassword@localhost:5432/gis';
 -------------------------
 
 node server.js
-
