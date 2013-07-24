@@ -64,3 +64,50 @@ http://planet.osm.org/pbf/planet-latest.osm.pbf
 ------------------------------
 
 osm2pgsql -m -s -c --drop -j -v --cache-strategy dense --flat-nodes tempFileErase  -d osm -U osmuser --unlogged --number-processe 12 -C 12000 --hstore-add-index --exclude-invalid-polygon -r pbf  planet-latest.osm.pbf
+
+
+- INSTALL NODEJS:
+-----------------
+
+sudo apt-get update
+
+sudo apt-get install python-software-properties python g++ make
+
+sudo add-apt-repository ppa:chris-lea/node.js
+
+sudo apt-get update
+
+sudo apt-get install nodejs
+
+
+- INSTALL NODE MODULES THROUGH NPM (Node Package Manager):
+----------------------------------------------------------
+
+(go to project directory "vectorosm" and install the modules locally there. When using NPM, this will download the modules in the current directory. However, it has a -g flag for installing modules globally.)
+
+sudo npm install express
+
+sudo npm install pg
+
+sudo npm install colors
+
+
+- MAKE PG MODULE ABLE TO CONNECT TO POSTGRES:
+---------------------------------------------
+
+(In tileCreator.js type the connection string "anything://user:password@host:port/database")
+
+conString = 'tcp://gisuser:gispassword@localhost:5432/gis';
+
+
+- MODIFY IF NEEDED THE QUERIES FOR EACH ZOOM LEVEL:
+---------------------------------------------------
+
+(In queryCreator.js queries can be modified to show more or less data for each zoom level if needed)
+
+
+- RUN VECTOR TILE SERVER:
+-------------------------
+
+node server.js
+

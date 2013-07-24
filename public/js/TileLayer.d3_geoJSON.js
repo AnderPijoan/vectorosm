@@ -1,3 +1,18 @@
+/* Experimental vector tile layer for Leaflet
+* Uses D3 to render GeoJSON; faster than Leaflet's native.
+* Originally by Ziggy Jonsson: http://bl.ocks.org/ZJONSSON/5602552
+* Reworked by Nelson Minar: http://bl.ocks.org/NelsonMinar/5624141
+*
+* While working (and fast!) this plugin requires work to work like
+* a typical Leaflet layer. Todo:
+* Make this work even if <svg> isn't in the DOM yet;
+* For now, add a fake GeoJSON layer to your map before one of these
+* new L.geoJson({"type":"LineString","coordinates":[[0,0],[0,0]]}).addTo(map);
+* Make this work for tile types that aren't FeatureCollection
+* Match D3 idioms for .classed(), .style(), etc? Or match the Leaflet API?
+* Work on allowing feature popups, etc.
+*/
+
 L.TileLayer.d3_geoJSON =  L.TileLayer.extend({
   onAdd : function(map) {
     L.TileLayer.prototype.onAdd.call(this,map);
