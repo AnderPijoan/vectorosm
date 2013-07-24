@@ -1,0 +1,115 @@
+OSM geoJSON Tile Server on NodeJS
+=================================
+
+- INSTALL POSTGRES + POSTGIS:
+-----------------------------
+
+sudo apt-get install python-software-properties
+
+sudo apt-add-repository ppa:sharpie/for-science
+
+sudo apt-add-repository ppa:sharpie/postgis-stable
+
+sudo apt-add-repository ppa:ubuntugis/ubuntugis-unstable
+
+sudo apt-get update
+
+sudo apt-get install postgresql-9.1-postgis2 postgresql-contrib-9.1
+
+
+- CREATE DATABASE IN POSTGRESQL WITH "OSMUSER" AS OWNER:
+--------------------------------------------------------
+
+sudo -u postgres -i -H
+
+createuser -SdR osmuser
+
+createdb -E UTF8 -O osmuser osm
+
+
+- ADD SPATIAL CAPABILITIES TO OSM DATABASE:
+-------------------------------------------
+
+createlang plpgsql osm
+
+psql -d osm -f /usr/share/postgresql/contrib/postgis-2.0/postgis.sql
+
+psql -d osm -f /usr/share/postgresql/contrib/postgis-2.0/spatial_ref_sys.sql
+
+psql osm -c "CREATE EXTENSION hstore"
+
+psql osm -c "ALTER TABLE geometry_columns OWNER TO osmuser"
+
+psql osm -c "ALTER TABLE spatial_ref_sys OWNER TO osmuser"
+
+exit
+
+
+- INSTALL OSM2PGSQL:
+-------------------------------------------
+
+sudo add-apt-repository ppa:kakrueger/openstreetmap
+
+sudo apt-get update
+
+sudo apt-get install osm2pgsql
+
+(When installing it will create a database in PostGIS. If you want to have access to it when asking which users should have access, type "osmuser" after www-data : "www-data osmuser")
+
+
+- DOWNLOAD LATEST OSM WORLD PBF FILE:
+--------------------------------
+
+http://planet.osm.org/pbf/planet-latest.osm.pbf
+
+
+- IMPORT OSM FILE TO POSTGRES:
+------------------------------
+
+osm2pgsql -m -s -c --drop -j -v --cache-strategy dense --flat-nodes tempFileErase  -d osm -U osmuser --unlogged --number-processe 12 -C 12000 --hstore-add-index --exclude-invalid-polygon -r pbf  planet-latest.osm.pbf
+
+
+- INSTALL NODEJS:
+-----------------
+
+sudo apt-get update
+
+sudo apt-get install python-software-properties python g++ make
+
+sudo add-apt-repository ppa:chris-lea/node.js
+
+sudo apt-get update
+
+sudo apt-get install nodejs
+
+
+- INSTALL NODE MODULES THROUGH NPM (Node Package Manager):
+----------------------------------------------------------
+
+(go to project directory "vectorosm" and install the modules locally there. When using NPM, this will download the modules in the current directory. However, it has a -g flag for installing modules globally.)
+
+sudo npm install express
+
+sudo npm install pg
+
+sudo npm install colors
+
+
+- MAKE PG MODULE ABLE TO CONNECT TO POSTGRES:
+---------------------------------------------
+
+(In tileCreator.js type the connection string "anything://user:password@host:port/database")
+
+conString = 'tcp://gisuser:gispassword@localhost:5432/gis';
+
+
+- MODIFY IF NEEDED THE QUERIES FOR EACH ZOOM LEVEL:
+---------------------------------------------------
+
+(In queryCreator.js queries can be modified to show more or less data for each zoom level if needed)
+
+
+- RUN VECTOR TILE SERVER:
+-------------------------
+
+node server.js
