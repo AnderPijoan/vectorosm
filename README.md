@@ -1,6 +1,3 @@
-OSM geoJSON Tile Server on NodeJS
-=================================
-
 - INSTALL POSTGRES + POSTGIS:
 -----------------------------
 
@@ -88,11 +85,13 @@ sudo apt-get install nodejs
 
 (go to project directory "vectorosm" and install the modules locally there. When using NPM, this will download the modules in the current directory. However, it has a -g flag for installing modules globally.)
 
-sudo npm install express
+npm install express
 
-sudo npm install pg
+npm install pg
 
-sudo npm install colors
+npm install colors
+
+npm install body-parser
 
 
 - MAKE PG MODULE ABLE TO CONNECT TO POSTGRES:
@@ -100,7 +99,7 @@ sudo npm install colors
 
 (In tileCreator.js type the connection string "anything://user:password@host:port/database")
 
-conString = 'tcp://gisuser:gispassword@localhost:5432/gis';
+conString = 'tcp://osmuser:osmpassword@localhost:5432/osm';
 
 
 - MODIFY IF NEEDED THE QUERIES FOR EACH ZOOM LEVEL:

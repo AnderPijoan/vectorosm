@@ -15,7 +15,6 @@ app.get('/generate/:zoom/:x/:y', function(req, res){
     tc.connect(function(error, client){
 
 	var zoom = parseInt(req.params.zoom);
-
 	if (!error){
 		if (zoom <= maxZoom){
 			ut.dirExists('public/tiles/' + zoom, zoom, function(result, temp, dir){
