@@ -35,7 +35,7 @@ map._initPathRoot();
 /*http://energia.deusto.es/tilecache/tilecache.cgi/tilecache/osm/${z}/${x}/${y}.png*/
 /*http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png*/
 
-new L.TileLayer.d3_geoJSON('http://energia.deusto.es:8001/tiles/{z}/{x}/{y}.json',{class:"style"})
+new L.TileLayer.d3_geoJSON('http://localhost:8001/tiles/{z}/{x}/{y}.json',{class:"style"})
   .addTo(map);
 
 new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {minZoom: 0, maxZoom: 18, attribution: 'Map data © OpenStreetMap contributors'}).addTo(map);		
