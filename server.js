@@ -1,6 +1,7 @@
 var colors = require('colors');
 var express = require('express');
 var bodyParser = require('body-parser');
+var path = require('path');
 
 ////////////////////////////////// SETTINGS
 
@@ -14,6 +15,9 @@ app.use(bodyParser.json());
 ////////////////////////////////// ROUTES
 
 require('./routes/routes')(app);
+
+////////////////////////////////// PUBLIC FOLDER
+app.use(express.static(path.join(__dirname, 'public')));
 
 ////////////////////////////////// SUCCESS
 
